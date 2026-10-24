@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Vehicle
+from .selectors import search_vehicles
 from .serializers import VehicleSearchParamsSerializer, VehicleSerializer
 
 
@@ -29,13 +30,6 @@ class VehicleSearchView(APIView):
         params.is_valid(raise_exception=True)
         filters = params.validated_data
 
-        queryset = Vehicle.objects.all()
-        for field in ("make", "model", "category"):
-            if filters.get(field):
-                queryset = queryset.filter(**{f"{field}__icontains": filters[field]})
-        if "min_price" in filters:
-            queryset = queryset.filter(price__gte=filters["min_price"])
-        if "max_price" in filters:
-            queryset = queryset.filter(price__lte=filters["max_price"])
+        queryset = search_vehicles(filters)
 
         return Response(VehicleSerializer(queryset, many=True).data)
