@@ -1,4 +1,5 @@
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.exceptions import APIException, NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -6,7 +7,8 @@ from accounts.permissions import IsAdminRole
 
 from .models import Vehicle
 from .selectors import search_vehicles
-from .serializers import VehicleSearchParamsSerializer, VehicleSerializer
+from .serializers import PurchaseSerializer, QuantitySerializer, VehicleSearchParamsSerializer, VehicleSerializer
+from .services import InsufficientStock, VehicleNotFound, purchase_vehicle, restock_vehicle
 
 
 class VehicleListCreateView(generics.ListCreateAPIView):
@@ -40,3 +42,41 @@ class VehicleSearchView(APIView):
         queryset = search_vehicles(filters)
 
         return Response(VehicleSerializer(queryset, many=True).data)
+
+
+class StockConflict(APIException):
+    """HTTP 409: the request is valid but conflicts with the current stock level."""
+
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = "Not enough stock to complete this request."
+    default_code = "insufficient_stock"
+
+
+class VehiclePurchaseView(APIView):
+    """POST /api/vehicles/:id/purchase  {quantity?: int}  - sells units, decreasing stock."""
+
+    def post(self, request, pk: int):
+        body = PurchaseSerializer(data=request.data)
+        body.is_valid(raise_exception=True)
+        try:
+            vehicle = purchase_vehicle(pk, body.validated_data["quantity"])
+        except VehicleNotFound as exc:
+            raise NotFound(str(exc)) from exc
+        except InsufficientStock as exc:
+            raise StockConflict(str(exc)) from exc
+        return Response(VehicleSerializer(vehicle).data)
+
+
+class VehicleRestockView(APIView):
+    """POST /api/vehicles/:id/restock  {quantity: int}  - admin only, increases stock."""
+
+    permission_classes = [IsAdminRole]
+
+    def post(self, request, pk: int):
+        body = QuantitySerializer(data=request.data)
+        body.is_valid(raise_exception=True)
+        try:
+            vehicle = restock_vehicle(pk, body.validated_data["quantity"])
+        except VehicleNotFound as exc:
+            raise NotFound(str(exc)) from exc
+        return Response(VehicleSerializer(vehicle).data)

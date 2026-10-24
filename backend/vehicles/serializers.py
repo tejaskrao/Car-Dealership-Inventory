@@ -27,3 +27,16 @@ class VehicleSearchParamsSerializer(serializers.Serializer):
         if low is not None and high is not None and low > high:
             raise serializers.ValidationError("min_price cannot be greater than max_price.")
         return attrs
+
+
+class QuantitySerializer(serializers.Serializer):
+    """Body of the purchase and restock requests: a positive whole number of units."""
+
+    # strict integers only: "abc", 1.5 and null are all rejected
+    quantity = serializers.IntegerField(min_value=1)
+
+
+class PurchaseSerializer(QuantitySerializer):
+    """Purchases default to a single unit when no quantity is sent."""
+
+    quantity = serializers.IntegerField(min_value=1, required=False, default=1)
