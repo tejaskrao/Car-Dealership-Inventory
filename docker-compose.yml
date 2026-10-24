@@ -1,0 +1,14 @@
+# Starts PostgreSQL for local development:  docker compose up -d db
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: car_dealership
+      POSTGRES_USER: dealership
+      POSTGRES_PASSWORD: dealership
+    ports:
+      - "5432:5432"
+    volumes:
+      - dealership_pgdata:/var/lib/postgresql/data
+volumes:
+  dealership_pgdata:
