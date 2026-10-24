@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -28,3 +29,21 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # create_user hashes the password for us.
         return User.objects.create_user(**validated_data)
+
+
+class UserSummarySerializer(serializers.ModelSerializer):
+    """The small public view of a user that the frontend needs after login."""
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "role"]
+        read_only_fields = fields
+
+
+class LoginSerializer(TokenObtainPairSerializer):
+    """SimpleJWT login that also returns who just logged in (including their role)."""
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data["user"] = UserSummarySerializer(self.user).data
+        return data
