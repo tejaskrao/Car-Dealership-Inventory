@@ -13,11 +13,11 @@ describe('VehicleForm', () => {
     await userEvent.type(screen.getByLabelText(/make/i), 'Kia')
     await userEvent.type(screen.getByLabelText(/model/i), 'Seltos')
     await userEvent.type(screen.getByLabelText(/category/i), 'SUV')
-    await userEvent.type(screen.getByLabelText(/price/i), '19000.50')
+    await userEvent.type(screen.getByLabelText(/price/i), '19000.5')
     await userEvent.type(screen.getByLabelText(/quantity/i), '3')
     await userEvent.click(screen.getByRole('button', { name: /add vehicle/i }))
 
-    expect(onSubmit).toHaveBeenCalledWith({ make: 'Kia', model: 'Seltos', category: 'SUV', price: '19000.50', quantity: 3 })
+    expect(onSubmit).toHaveBeenCalledWith({ make: 'Kia', model: 'Seltos', category: 'SUV', price: '19000.5', quantity: 3 })
   })
 
   it('pre-fills the form when editing', () => {
