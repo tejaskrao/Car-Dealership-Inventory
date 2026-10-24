@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from rest_framework import generics, status
 from rest_framework.exceptions import APIException, NotFound
 from rest_framework.response import Response
@@ -52,18 +54,25 @@ class StockConflict(APIException):
     default_code = "insufficient_stock"
 
 
+@contextmanager
+def http_errors():
+    """Translate domain errors from the service layer into HTTP errors (keeps services HTTP-free)."""
+    try:
+        yield
+    except VehicleNotFound as exc:
+        raise NotFound(str(exc)) from exc
+    except InsufficientStock as exc:
+        raise StockConflict(str(exc)) from exc
+
+
 class VehiclePurchaseView(APIView):
     """POST /api/vehicles/:id/purchase  {quantity?: int}  - sells units, decreasing stock."""
 
     def post(self, request, pk: int):
         body = PurchaseSerializer(data=request.data)
         body.is_valid(raise_exception=True)
-        try:
+        with http_errors():
             vehicle = purchase_vehicle(pk, body.validated_data["quantity"])
-        except VehicleNotFound as exc:
-            raise NotFound(str(exc)) from exc
-        except InsufficientStock as exc:
-            raise StockConflict(str(exc)) from exc
         return Response(VehicleSerializer(vehicle).data)
 
 
@@ -75,8 +84,6 @@ class VehicleRestockView(APIView):
     def post(self, request, pk: int):
         body = QuantitySerializer(data=request.data)
         body.is_valid(raise_exception=True)
-        try:
+        with http_errors():
             vehicle = restock_vehicle(pk, body.validated_data["quantity"])
-        except VehicleNotFound as exc:
-            raise NotFound(str(exc)) from exc
         return Response(VehicleSerializer(vehicle).data)
