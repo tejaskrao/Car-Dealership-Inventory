@@ -15,7 +15,7 @@ def env(name: str, default: str = "") -> str:
     return os.environ.get(name, default)
 
 
-SECRET_KEY = env("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-me")
+SECRET_KEY = env("DJANGO_SECRET_KEY", "dev-only-insecure-key-change-me-0123456789abcdef")
 DEBUG = env("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = [h for h in env("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
 
