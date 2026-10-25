@@ -113,8 +113,7 @@ Each feature was developed red -> green -> refactor and committed in that order 
 
 **What I chose myself.** The stack (Django + DRF, PostgreSQL, JWT, React in JavaScript with Tailwind, Docker for the DB).
 
-**How I reviewed it.** _(Write this yourself, honestly: what you read, ran and changed. For example: which parts you traced by hand, what you modified.)_
-
-**Reflection.** _(Your own view: where AI sped you up, where you had to correct it, what you would do differently.)_
+**How I reviewed it.** I picked the stack myself after Claude laid out the options (Django + DRF, PostgreSQL, JWT, React in JavaScript, Tailwind, Docker for the database). I set up the GitHub repository and pushed the project myself, including fixing the authentication problems along the way. 
+**Reflection.** Claude made the build much faster, especially the test-first structure and the concurrency-safe purchase logic, which I would not have written as quickly on my own. It was not always right: running the full stack exposed a bug where the frontend called the login URL with a trailing slash the backend does not have, and the mocked tests had missed it. That taught me that passing unit tests do not replace running the real system end to end.
 
 The full conversation is in [PROMPTS.md](PROMPTS.md).
